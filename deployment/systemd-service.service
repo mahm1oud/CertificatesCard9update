@@ -1,0 +1,43 @@
+[Unit]
+Description=Certificates Application Service
+Documentation=https://example.com
+After=network.target postgresql.service
+
+[Service]
+Environment=NODE_ENV=production
+Type=simple
+# استخدام مستخدم غير الجذر (يُفضل) للأمان
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/certificates-app
+ExecStart=/usr/bin/node server/index.js
+Restart=always
+RestartSec=10
+# اقصى عدد محاولات إعادة التشغيل في حالة الفشل
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+# سجلات النظام
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=certificates-app
+
+# إشارات القتل والانتظار
+KillMode=process
+KillSignal=SIGINT
+TimeoutStopSec=30
+
+# حدود الموارد لمنع استهلاك الموارد المفرط
+CPUQuota=80%
+MemoryLimit=1G
+IOWeight=500
+
+# تعزيزات الأمان (تعليق لأي خيار قد يتعارض مع متطلبات التطبيق)
+PrivateTmp=true
+ProtectSystem=full
+NoNewPrivileges=true
+ProtectHome=true
+ReadWritePaths=/var/www/certificates-app
+
+[Install]
+WantedBy=multi-user.target
