@@ -51,7 +51,8 @@ export async function ensureDefaultAdminExists() {
           password: hashedPassword,
           fullName: 'مدير النظام',
           email: 'admin@example.com',
-          isAdmin: true,
+          isAdmin: true, // التأكد من تعيين صلاحية المسؤول
+          role: 'admin', // التأكد من تعيين دور المسؤول
           createdAt: new Date()
         }).returning();
         
@@ -62,10 +63,12 @@ export async function ensureDefaultAdminExists() {
         return newUser[0];
       }
       
-      // تحديث كلمة المرور للمستخدم الموجود
+      // تحديث كلمة المرور والدور للمستخدم الموجود
       await db.update(users)
         .set({ 
-          password: hashedPassword
+          password: hashedPassword,
+          isAdmin: true, // التأكد من أن المسؤول دائمًا لديه صلاحيات المسؤول
+          role: 'admin' // التأكد من أن المسؤول دائمًا له دور "admin"
         })
         .where(eq(users.username, 'admin'));
       
