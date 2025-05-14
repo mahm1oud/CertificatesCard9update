@@ -1,251 +1,218 @@
-# نشر تطبيق "نظام إصدار البطاقات والشهادات" على منصات مختلفة
+# دليل نشر تطبيق الشهادات والبطاقات الإلكترونية
+# Certificates & Cards Application Deployment Guide
 
-هذا الدليل يشرح بالتفصيل كيفية نشر تطبيق "نظام إصدار البطاقات والشهادات" على منصات استضافة مختلفة، مع شرح للتحديات والحلول بشكل مفصل.
+## مقدمة | Introduction
 
-## مقدمة
+هذا الدليل يشرح كيفية نشر تطبيق الشهادات والبطاقات الإلكترونية على الإنترنت، سواء على خادم VPS أو استضافة مشتركة تدعم Node.js، مع التركيز على نشره عبر CyberPanel على نظام AlmaLinux 9.
 
-تطبيق "نظام إصدار البطاقات والشهادات" هو تطبيق ويب متكامل يتكون من:
-- **واجهة أمامية (Frontend)**: مبنية باستخدام React و TypeScript
-- **واجهة خلفية (Backend)**: مبنية باستخدام Node.js و Express
-- **قاعدة بيانات**: PostgreSQL
+This guide explains how to deploy the Certificates & Cards application on the internet, whether on a VPS server or shared hosting that supports Node.js, with a focus on deploying it through CyberPanel on AlmaLinux 9.
 
-في هذا الدليل، سنشرح كيفية نشر كل جزء من التطبيق على منصات استضافة مختلفة.
+## المتطلبات الأساسية | Prerequisites
 
-## قبل البدء
+- خادم يعمل بنظام AlmaLinux 9 (أو أي توزيعة Linux أخرى)
+- وصول SSH للخادم
+- النطاق (Domain) موجه للخادم
+- CyberPanel مثبت على الخادم (اختياري، ولكن موصى به)
 
-تأكد من توفر المتطلبات التالية:
+---
 
-1. **إمكانية الوصول إلى السيرفر**: تأكد من أن لديك إمكانية الوصول إلى السيرفر الذي ستستضيف عليه التطبيق (SSH، FTP، إلخ).
-2. **Node.js وNPM**: تأكد من تثبيت Node.js وNPM على السيرفر.
-3. **قاعدة بيانات PostgreSQL**: تأكد من إنشاء قاعدة بيانات PostgreSQL وإمكانية الوصول إليها.
-4. **المجلدات المشتركة**: تأكد من وجود المجلدات المشتركة (fonts, shared, temp, uploads) ونسخها إلى الواجهة الخلفية.
+- A server running AlmaLinux 9 (or any other Linux distribution)
+- SSH access to the server
+- Domain pointed to the server
+- CyberPanel installed on the server (optional, but recommended)
 
-## هيكل الملفات
+## خيارات النشر | Deployment Options
 
-```
-/
-├── client/            # الواجهة الأمامية
-│   ├── dist/          # ملفات البناء النهائية للواجهة الأمامية
-│   ├── .env.production # متغيرات البيئة للإنتاج (الواجهة الأمامية)
-│   └── ...
-├── server/            # الواجهة الخلفية
-│   ├── dist/          # ملفات البناء النهائية للواجهة الخلفية
-│   ├── .env.production # متغيرات البيئة للإنتاج (الواجهة الخلفية)
-│   └── ...
-├── fonts/             # مجلد الخطوط المستخدمة
-├── shared/            # المجلد المشترك بين الواجهة الأمامية والخلفية
-├── temp/              # مجلد الملفات المؤقتة
-├── uploads/           # مجلد الملفات المرفوعة
-│   ├── generated/     # مجلد الصور المولدة
-│   ├── logos/         # مجلد الشعارات
-│   ├── signatures/    # مجلد التوقيعات
-│   └── ...
-├── scripts/           # سكريبتات البناء والنشر
-│   ├── build.sh       # سكريبت البناء
-│   ├── copy-assets.sh # سكريبت نسخ الأصول المشتركة
-│   └── ...
-└── ...
-```
+### 1. النشر على CyberPanel (موصى به) | CyberPanel Deployment (Recommended)
 
-## تجهيز المشروع للنشر
+يوفر CyberPanel واجهة سهلة الاستخدام لإدارة الخادم ومواقع الويب وشهادات SSL. للحصول على تعليمات مفصلة، راجع ملف `deployment/cyberpanel-deployment.md`.
 
-### 1. بناء المشروع
+CyberPanel provides an easy-to-use interface for managing the server, websites, and SSL certificates. For detailed instructions, see the `deployment/cyberpanel-deployment.md` file.
 
-قم بتشغيل سكريبت البناء الذي سينتج ملفات البناء النهائية للواجهة الأمامية والخلفية:
+### 2. النشر المباشر على VPS | Direct VPS Deployment
+
+إذا كنت تفضل النشر مباشرة على VPS بدون استخدام CyberPanel، يمكنك استخدام Nginx كـ reverse proxy مع PM2 لإدارة عمليات Node.js. راجع ملف `deployment/vps-deployment.md` للحصول على تعليمات.
+
+If you prefer to deploy directly on a VPS without using CyberPanel, you can use Nginx as a reverse proxy with PM2 to manage Node.js processes. See the `deployment/vps-deployment.md` file for instructions.
+
+### 3. النشر على Replit | Replit Deployment
+
+يمكن نشر التطبيق أيضًا على منصة Replit، وهي مناسبة للاختبار والتطوير. انظر إلى ملف `DEPLOY.md` للتعليمات.
+
+The application can also be deployed on the Replit platform, which is suitable for testing and development. See the `DEPLOY.md` file for instructions.
+
+## خطوات بناء المشروع | Project Build Steps
+
+قبل النشر، يجب بناء المشروع. يمكنك استخدام سكريبتات البناء المتوفرة:
+
+Before deployment, you need to build the project. You can use the available build scripts:
+
+### بناء المشروع الكامل | Building the Entire Project
 
 ```bash
-./scripts/build.sh
+./build-all.sh
 ```
 
-هذا السكريبت سيقوم بالخطوات التالية:
-- بناء الواجهة الأمامية وإنتاج ملفات HTML/CSS/JS في مجلد `client/dist`
-- بناء الواجهة الخلفية وإنتاج ملفات JS في مجلد `server/dist`
-- نسخ المجلدات المشتركة (fonts, shared, uploads) إلى مجلد `server/dist`
+### بناء الواجهة الأمامية فقط | Building the Frontend Only
 
-### 2. تكوين متغيرات البيئة
-
-#### للواجهة الأمامية (`client/.env.production`):
-
-```
-VITE_API_URL=https://api.example.com  # عنوان API الواجهة الخلفية
+```bash
+./build-client.sh
 ```
 
-#### للواجهة الخلفية (`server/.env.production`):
+### بناء الخادم فقط | Building the Backend Only
+
+```bash
+./build-server.sh
+```
+
+## إعداد قاعدة البيانات | Database Setup
+
+التطبيق يستخدم PostgreSQL كقاعدة بيانات. يجب إعداد قاعدة البيانات قبل تشغيل التطبيق:
+
+The application uses PostgreSQL as a database. You need to set up the database before running the application:
+
+```bash
+# تثبيت PostgreSQL
+# Install PostgreSQL
+sudo dnf module install -y postgresql:15/server
+
+# بدء تشغيل الخدمة
+# Start the service
+systemctl enable postgresql
+systemctl start postgresql
+
+# إنشاء قاعدة البيانات والمستخدم
+# Create database and user
+sudo -i -u postgres
+psql -c "CREATE USER u240955251_colluser WITH PASSWORD '700125733Mm';"
+psql -c "CREATE DATABASE u240955251_colliderdb;"
+psql -c "ALTER DATABASE u240955251_colliderdb OWNER TO u240955251_colluser;"
+psql -c "GRANT ALL PRIVILEGES ON DATABASE u240955251_colliderdb TO u240955251_colluser;"
+```
+
+## إعدادات البيئة | Environment Settings
+
+يجب إنشاء ملف `.env` في جذر المشروع بناءً على ملف `production.env` المتوفر. تأكد من تحديث القيم حسب بيئتك:
+
+You need to create a `.env` file in the project root based on the provided `production.env` file. Make sure to update the values according to your environment:
 
 ```
-PORT=5000
 NODE_ENV=production
-DATABASE_URL=postgresql://username:password@hostname:port/database
-SESSION_SECRET=your-secure-session-key
-ALLOWED_ORIGINS=https://frontend.example.com
+PORT=5000
+
+# إعدادات قاعدة البيانات PostgreSQL
+# PostgreSQL Database Settings
+DATABASE_URL=postgresql://u240955251_colluser:700125733Mm@localhost:5432/u240955251_colliderdb
+
+# مسار السيرفر
+# Server URL
+SERVER_URL=https://your-domain.com
+
+# إعدادات أخرى
+# Other settings
+UPLOAD_DIR=/path/to/uploads
+SESSION_SECRET=your_secret_key
+JWT_SECRET=your_jwt_secret
 ```
 
-## خيارات النشر
+## إعدادات الويب سيرفر | Web Server Configuration
 
-### الخيار 1: نشر الواجهة الأمامية والخلفية على نفس السيرفر
+### Nginx (مع CyberPanel أو بدونه) | Nginx (with or without CyberPanel)
 
-في هذا السيناريو، ستقوم بنشر الواجهة الأمامية والخلفية على نفس السيرفر. هذا الخيار مناسب للمشاريع الصغيرة والمتوسطة.
+يتوفر ملف تكوين نموذجي لـ Nginx في `deployment/nginx-config.conf`. قم بتعديله ليناسب نطاقك.
 
-#### الخطوات:
+A sample Nginx configuration file is available in `deployment/nginx-config.conf`. Modify it to suit your domain.
 
-1. **نقل الملفات**:
-   ```bash
-   # نقل ملفات الواجهة الأمامية
-   scp -r client/dist/* user@server:/path/to/public_html/
-   
-   # نقل ملفات الواجهة الخلفية
-   scp -r server/dist/* user@server:/path/to/api/
-   ```
+### إعداد خدمة Systemd | Systemd Service Setup
 
-2. **تكوين Nginx**:
-   ```nginx
-   # الواجهة الأمامية
-   server {
-       listen 80;
-       server_name frontend.example.com;
-       root /path/to/public_html;
-       
-       location / {
-           try_files $uri $uri/ /index.html;
-       }
-   }
-   
-   # الواجهة الخلفية
-   server {
-       listen 80;
-       server_name api.example.com;
-       
-       location / {
-           proxy_pass http://localhost:5000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
+لتشغيل التطبيق كخدمة في الخلفية، استخدم ملف خدمة systemd المتوفر في `deployment/systemd-service.service`:
 
-3. **تشغيل الواجهة الخلفية**:
-   ```bash
-   cd /path/to/api
-   npm install --production
-   node index.js
-   ```
+To run the application as a background service, use the systemd service file available in `deployment/systemd-service.service`:
 
-### الخيار 2: نشر الواجهة الأمامية على CDN والواجهة الخلفية على سيرفر منفصل
+```bash
+cp deployment/systemd-service.service /etc/systemd/system/certificates-app.service
+systemctl daemon-reload
+systemctl enable certificates-app
+systemctl start certificates-app
+```
 
-في هذا السيناريو، ستقوم بنشر الواجهة الأمامية على خدمة استضافة ستاتيكية (مثل Netlify أو Vercel) والواجهة الخلفية على سيرفر منفصل.
+## إعدادات SSL | SSL Configuration
 
-#### الخطوات:
+للحصول على شهادة SSL مجانية من Let's Encrypt، يمكنك استخدام CyberPanel الذي يوفر دعمًا مدمجًا، أو استخدام Certbot:
 
-1. **نشر الواجهة الأمامية على Netlify/Vercel**:
-   - قم بإنشاء حساب على Netlify أو Vercel
-   - قم برفع مجلد `client/dist` إلى المنصة
-   - قم بتكوين متغيرات البيئة (`VITE_API_URL`)
+To get a free SSL certificate from Let's Encrypt, you can use CyberPanel which provides built-in support, or use Certbot:
 
-2. **نشر الواجهة الخلفية على سيرفر منفصل**:
-   ```bash
-   # نقل ملفات الواجهة الخلفية
-   scp -r server/dist/* user@server:/path/to/api/
-   
-   # تشغيل الواجهة الخلفية
-   cd /path/to/api
-   npm install --production
-   node index.js
-   ```
+```bash
+dnf install -y certbot python3-certbot-nginx
+certbot --nginx -d your-domain.com -d www.your-domain.com
+```
 
-### الخيار 3: نشر الواجهة الأمامية والخلفية على حاويات Docker
+## استكشاف الأخطاء وإصلاحها | Troubleshooting
 
-في هذا السيناريو، ستقوم بإنشاء حاويات Docker للواجهة الأمامية والخلفية ونشرها على خدمة استضافة تدعم Docker.
+### مشاكل اتصال قاعدة البيانات | Database Connection Issues
 
-#### الخطوات:
+تأكد من أن خدمة PostgreSQL تعمل وأن إعدادات الاتصال صحيحة في ملف `.env`.
 
-1. **إنشاء Dockerfile للواجهة الأمامية**:
-   ```Dockerfile
-   FROM nginx:alpine
-   COPY client/dist /usr/share/nginx/html
-   COPY nginx.conf /etc/nginx/conf.d/default.conf
-   EXPOSE 80
-   CMD ["nginx", "-g", "daemon off;"]
-   ```
+Make sure the PostgreSQL service is running and that the connection settings are correct in the `.env` file.
 
-2. **إنشاء Dockerfile للواجهة الخلفية**:
-   ```Dockerfile
-   FROM node:16-alpine
-   WORKDIR /app
-   COPY server/dist .
-   COPY server/package.json server/package-lock.json ./
-   RUN npm install --production
-   EXPOSE 5000
-   CMD ["node", "index.js"]
-   ```
+### مشاكل الأذونات | Permission Issues
 
-3. **بناء ونشر حاويات Docker**:
-   ```bash
-   # بناء حاويات Docker
-   docker build -t frontend-image -f Dockerfile-frontend .
-   docker build -t backend-image -f Dockerfile-backend .
-   
-   # نشر حاويات Docker
-   docker push frontend-image
-   docker push backend-image
-   ```
+تأكد من أن المستخدم الذي يشغل التطبيق لديه أذونات صحيحة لقراءة/كتابة المجلدات المطلوبة:
 
-## التحديات والحلول
+Ensure that the user running the application has the correct permissions to read/write the required directories:
 
-### تحدي 1: إدارة المجلدات المشتركة
+```bash
+chown -R user:group /path/to/app/uploads
+chmod -R 755 /path/to/app/uploads
+```
 
-**التحدي**: كيفية إدارة المجلدات المشتركة (fonts, shared, uploads) بين الواجهة الأمامية والخلفية.
+### مشاكل Nginx | Nginx Issues
 
-**الحل**: 
-- المجلدات المشتركة تكون جزءًا من الواجهة الخلفية فقط
-- الواجهة الأمامية تحصل على الملفات من الواجهة الخلفية عبر API
-- استخدام سكريبت `copy-assets.sh` لنسخ المجلدات المشتركة إلى مجلد `server/dist` أثناء البناء
+تحقق من سجلات أخطاء Nginx:
 
-### تحدي 2: إدارة الملفات المرفوعة
+Check Nginx error logs:
 
-**التحدي**: كيفية إدارة الملفات المرفوعة (صور، شعارات، توقيعات) بين البيئات المختلفة.
+```bash
+tail -f /var/log/nginx/error.log
+```
 
-**الحل**:
-- استخدام تخزين سحابي مثل AWS S3 أو Firebase Storage لتخزين الملفات المرفوعة
-- تكوين الواجهة الخلفية للوصول إلى التخزين السحابي
-- استخدام مسارات URL نسبية للملفات المرفوعة في الواجهة الأمامية
+### مشاكل التطبيق | Application Issues
 
-### تحدي 3: إدارة متغيرات البيئة
+تحقق من سجلات التطبيق:
 
-**التحدي**: كيفية إدارة متغيرات البيئة بين البيئات المختلفة (تطوير، اختبار، إنتاج).
+Check application logs:
 
-**الحل**:
-- استخدام ملفات `.env` و `.env.production` للواجهة الأمامية والخلفية
-- تكوين متغيرات البيئة على منصات النشر (Netlify، Vercel، Heroku، إلخ)
-- استخدام `cors` في الواجهة الخلفية للسماح بالوصول من الواجهة الأمامية
+```bash
+journalctl -u certificates-app -f
+```
 
-## استراتيجية النسخ الاحتياطي
+## النسخ الاحتياطي | Backup
 
-للحفاظ على بيانات التطبيق، يجب إنشاء استراتيجية للنسخ الاحتياطي تشمل:
+لإعداد نسخ احتياطي يومي للتطبيق وقاعدة البيانات، راجع ملف `deployment/cyberpanel-deployment.md` للحصول على سكريبت النسخ الاحتياطي.
 
-1. **نسخ احتياطي لقاعدة البيانات**:
-   ```bash
-   pg_dump -U username -h hostname -d database > backup.sql
-   ```
+To set up daily backups for the application and database, refer to the `deployment/cyberpanel-deployment.md` file for the backup script.
 
-2. **نسخ احتياطي للملفات المرفوعة**:
-   ```bash
-   rsync -avz user@server:/path/to/uploads/ /path/to/backup/uploads/
-   ```
+## التحديث | Updating
 
-3. **جدولة النسخ الاحتياطي**:
-   ```bash
-   # إضافة مهمة cron للنسخ الاحتياطي اليومي
-   0 0 * * * /path/to/backup-script.sh
-   ```
+لتحديث التطبيق إلى إصدار جديد:
 
-## الخاتمة
+To update the application to a new version:
 
-في هذا الدليل، تعلمنا كيفية نشر تطبيق "نظام إصدار البطاقات والشهادات" على منصات استضافة مختلفة. تذكر أن اختيار منصة النشر المناسبة يعتمد على احتياجات مشروعك وميزانيتك.
+```bash
+cd /path/to/app
+git pull
+./build-all.sh
+systemctl restart certificates-app
+```
 
-لمزيد من المعلومات والمساعدة، راجع:
-- [دليل نشر تطبيقات React](https://reactjs.org/docs/deployment.html)
-- [دليل نشر تطبيقات Node.js](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/)
-- [دليل استخدام Docker مع Node.js](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/)
+## الدعم | Support
+
+إذا واجهت أي مشاكل، يرجى:
+1. مراجعة ملفات التوثيق في مجلد `deployment/`
+2. التحقق من سجلات التطبيق وسجلات Nginx
+3. التواصل مع فريق الدعم من خلال البريد الإلكتروني المتوفر في ملف `README.md`
+
+If you encounter any issues, please:
+1. Review the documentation files in the `deployment/` folder
+2. Check the application logs and Nginx logs
+3. Contact the support team through the email available in the `README.md` file

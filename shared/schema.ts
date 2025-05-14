@@ -83,6 +83,178 @@ export const templates = pgTable("templates", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Layers schema - طبقات القوالب
+export const layers = pgTable("layers", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => templates.id),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // text, image, shape, etc.
+  properties: json("properties").notNull().default({}), // position, size, color, etc.
+  content: text("content"), // text content if applicable
+  zIndex: integer("z_index").notNull().default(0),
+  required: boolean("required").default(false).notNull(),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Template Fields schema - حقول القوالب
+export const templateFields = pgTable("template_fields", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => templates.id),
+  name: text("name").notNull(),
+  label: text("label").notNull(),
+  labelAr: text("label_ar"), // النسخة العربية للتسمية
+  type: text("type").notNull(), // text, number, date, select, etc.
+  imageType: text("image_type"), // نوع الصورة إذا كان الحقل من نوع صورة
+  required: boolean("required").default(false).notNull(),
+  defaultValue: text("default_value"),
+  placeholder: text("placeholder"),
+  placeholderAr: text("placeholder_ar"), // النسخة العربية للنص التوضيحي
+  options: json("options").default([]).$type<string[]>(), // options for select fields
+  position: json("position").default({}), // موقع الحقل
+  style: json("style").default({}), // نمط الحقل
+  displayOrder: integer("display_order").notNull().default(0),
+});
+
+// User Logos schema - شعارات المستخدمين
+export const userLogos = pgTable("user_logos", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  imageUrl: text("image_url").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// User Signatures schema - توقيعات المستخدمين
+export const userSignatures = pgTable("user_signatures", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  imageUrl: text("image_url").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Template Logos schema - شعارات القوالب
+export const templateLogos = pgTable("template_logos", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => templates.id),
+  name: text("name").notNull(),
+  imageUrl: text("image_url").notNull(),
+  position: json("position").default({}).$type<{ x: number, y: number }>(), // position on the template
+  zIndex: integer("z_index").notNull().default(0),
+  required: boolean("required").default(false).notNull(),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Cards schema - البطاقات
+export const cards = pgTable("cards", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => templates.id),
+  userId: integer("user_id").references(() => users.id),
+  formData: json("form_data").notNull(),
+  imageUrl: text("image_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  categoryId: integer("category_id").notNull().references(() => categories.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  lastAccessed: timestamp("last_accessed"),
+  quality: text("quality").default("medium"),
+  publicId: text("public_id").unique(),
+  accessCount: integer("access_count").default(0).notNull(),
+  settings: json("settings").default({}),
+  status: text("status").default("active").notNull(),
+});
+
+// Certificates schema - الشهادات
+export const certificates = pgTable("certificates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  templateId: integer("template_id").references(() => templates.id),
+  title: text("title").notNull(),
+  code: text("code").notNull().unique(),
+  data: json("data").default({}), // field values
+  imageUrl: text("image_url"),
+  isVerified: boolean("is_verified").default(false).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// SEO schema - تحسين محركات البحث
+export const seo = pgTable("seo", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  keywords: json("keywords").default([]),
+  entityType: text("entity_type").notNull(),
+  entityId: integer("entity_id"),
+  canonicalUrl: text("canonical_url"),
+  ogImage: text("og_image"),
+  structuredData: json("structured_data").default({}),
+  noIndex: boolean("no_index").default(false),
+  updatedBy: integer("updated_by").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Fonts schema
+export const fonts = pgTable("fonts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  nameAr: text("name_ar"),
+  family: text("family").notNull(),
+  type: text("type").default("sans-serif"),
+  url: text("url").notNull(),
+  displayOrder: integer("display_order").default(0).notNull(),
+  active: boolean("active").default(true).notNull(),
+  isRtl: boolean("is_rtl").default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Settings schema
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value"),
+  category: text("category").default("general").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Certificate Batches schema
+export const certificateBatches = pgTable("certificate_batches", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  templateId: integer("template_id").references(() => templates.id),
+  status: text("status").default("draft").notNull(),
+  totalItems: integer("total_items").default(0).notNull(),
+  processedItems: integer("processed_items").default(0).notNull(),
+  errorItems: integer("error_items").default(0).notNull(),
+  data: json("data").default({}),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Certificate Batch Items schema
+export const certificateBatchItems = pgTable("certificate_batch_items", {
+  id: serial("id").primaryKey(),
+  batchId: integer("batch_id").notNull().references(() => certificateBatches.id),
+  rowNumber: integer("row_number").default(0).notNull(),
+  certificateId: integer("certificate_id").references(() => certificates.id),
+  recipientName: text("recipient_name").notNull(),
+  recipientEmail: text("recipient_email"),
+  status: text("status").default("pending").notNull(),
+  errorMessage: text("error_message"),
+  data: json("data").default({}),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Export schemas
 export const insertTemplateSchema = createInsertSchema(templates, {
   // إضافة قواعد التحقق المخصصة لبعض الحقول
   title: (schema) => schema.min(1, "عنوان القالب مطلوب"),
@@ -101,26 +273,15 @@ export const insertTemplateSchema = createInsertSchema(templates, {
   active: true,
 });
 
-export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
-export type Template = typeof templates.$inferSelect;
-
-// Template Fields schema - حقول القوالب
-export const templateFields = pgTable("template_fields", {
-  id: serial("id").primaryKey(),
-  templateId: integer("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  label: text("label").notNull(),
-  labelAr: text("label_ar"), // Arabic label
-  type: text("type").notNull().default("text"), // text, textarea, date, checkbox, radio, select, image
-  imageType: text("image_type"), // logo, signature - لتحديد نوع الصورة عندما يكون النوع image
-  required: boolean("required").default(false).notNull(),
-  defaultValue: text("default_value"),
-  placeholder: text("placeholder"),
-  placeholderAr: text("placeholder_ar"),
-  options: json("options").default([]), // For select, radio
-  position: json("position").default({}), // x, y, width, height (in %)
-  style: json("style").default({}), // font, size, color, alignment, etc.
-  displayOrder: integer("display_order").default(0).notNull(),
+export const insertLayerSchema = createInsertSchema(layers).pick({
+  templateId: true,
+  name: true,
+  type: true,
+  properties: true,
+  content: true,
+  zIndex: true,
+  required: true,
+  displayOrder: true,
 });
 
 export const insertTemplateFieldSchema = createInsertSchema(templateFields).pick({
@@ -129,6 +290,7 @@ export const insertTemplateFieldSchema = createInsertSchema(templateFields).pick
   label: true,
   labelAr: true,
   type: true,
+  imageType: true,
   required: true,
   defaultValue: true,
   placeholder: true,
@@ -139,59 +301,31 @@ export const insertTemplateFieldSchema = createInsertSchema(templateFields).pick
   displayOrder: true,
 });
 
-export type InsertTemplateField = z.infer<typeof insertTemplateFieldSchema>;
-export type TemplateField = typeof templateFields.$inferSelect;
-
-// Fonts schema - الخطوط
-export const fonts = pgTable("fonts", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  nameAr: text("name_ar"),
-  family: text("family").notNull(),
-  type: text("type").notNull().default("google"), // google, custom, system
-  url: text("url"),
-  active: boolean("active").default(true).notNull(),
-  isRtl: boolean("is_rtl").default(false).notNull(),
-  displayOrder: integer("display_order").default(0).notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+export const insertUserLogoSchema = createInsertSchema(userLogos).pick({
+  userId: true,
+  name: true,
+  imageUrl: true,
 });
 
-export const insertFontSchema = createInsertSchema(fonts).pick({
+export const insertUserSignatureSchema = createInsertSchema(userSignatures).pick({
+  userId: true,
   name: true,
-  nameAr: true,
-  family: true,
-  type: true,
-  url: true,
-  active: true,
-  isRtl: true,
+  imageUrl: true,
+});
+
+export const insertTemplateLogoSchema = createInsertSchema(templateLogos).pick({
+  templateId: true,
+  name: true,
+  imageUrl: true,
+  position: true,
+  zIndex: true,
+  required: true,
   displayOrder: true,
 });
 
-export type InsertFont = z.infer<typeof insertFontSchema>;
-export type Font = typeof fonts.$inferSelect;
-
-// Card schema - البطاقات المولدة من القوالب
-export const cards = pgTable("cards", {
-  id: serial("id").primaryKey(),
-  templateId: integer("template_id").notNull().references(() => templates.id),
-  userId: integer("user_id").references(() => users.id),
-  formData: json("form_data").notNull(),
-  imageUrl: text("image_url").notNull(),
-  thumbnailUrl: text("thumbnail_url"),
-  categoryId: integer("category_id").notNull().references(() => categories.id),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  lastAccessed: timestamp("last_accessed"),
-  quality: text("quality").default("medium"), // low, medium, high
-  publicId: text("public_id").unique(), // For public access
-  accessCount: integer("access_count").default(0).notNull(),
-  settings: json("settings").default({}), // Card-specific settings
-  status: text("status").default("active").notNull(), // active, draft, deleted
-});
-
 export const insertCardSchema = createInsertSchema(cards).pick({
-  templateId: true,
   userId: true,
+  templateId: true,
   formData: true,
   imageUrl: true,
   thumbnailUrl: true,
@@ -202,407 +336,110 @@ export const insertCardSchema = createInsertSchema(cards).pick({
   status: true,
 });
 
+export const insertCertificateSchema = createInsertSchema(certificates).pick({
+  userId: true,
+  templateId: true,
+  title: true,
+  code: true,
+  data: true,
+  imageUrl: true,
+  isVerified: true,
+});
+
+export const insertSeoSchema = createInsertSchema(seo).pick({
+  path: true,
+  title: true,
+  description: true,
+  keywords: true,
+  updatedBy: true,
+});
+
+// Types
+export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
+export type Template = typeof templates.$inferSelect;
+
+export type InsertLayer = z.infer<typeof insertLayerSchema>;
+export type Layer = typeof layers.$inferSelect;
+
+export type InsertTemplateField = z.infer<typeof insertTemplateFieldSchema>;
+export type TemplateField = typeof templateFields.$inferSelect;
+
+export type InsertUserLogo = z.infer<typeof insertUserLogoSchema>;
+export type UserLogo = typeof userLogos.$inferSelect;
+
+export type InsertUserSignature = z.infer<typeof insertUserSignatureSchema>;
+export type UserSignature = typeof userSignatures.$inferSelect;
+
+export type InsertTemplateLogo = z.infer<typeof insertTemplateLogoSchema>;
+export type TemplateLogo = typeof templateLogos.$inferSelect;
+
 export type InsertCard = z.infer<typeof insertCardSchema>;
 export type Card = typeof cards.$inferSelect;
-
-// Certificates schema - الشهادات
-export const certificates = pgTable("certificates", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  titleAr: text("title_ar"),
-  templateId: integer("template_id").notNull().references(() => templates.id),
-  userId: integer("user_id").references(() => users.id),
-  certificateType: text("certificate_type").notNull().default("appreciation"), // appreciation, training, education, teacher
-  formData: json("form_data").notNull(),
-  imageUrl: text("image_url").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  expiryDate: date("expiry_date"),
-  status: text("status").default("active").notNull(), // active, expired, revoked
-  issuedTo: text("issued_to"),
-  issuedToGender: text("issued_to_gender").default("male"), // male, female - للقواعد النحوية العربية
-  verificationCode: text("verification_code").unique(),
-  publicId: text("public_id").unique(),
-});
-
-export const insertCertificateSchema = createInsertSchema(certificates).pick({
-  title: true,
-  titleAr: true,
-  templateId: true,
-  userId: true,
-  certificateType: true,
-  formData: true,
-  imageUrl: true,
-  expiryDate: true,
-  status: true,
-  issuedTo: true,
-  issuedToGender: true,
-  verificationCode: true,
-  publicId: true,
-});
 
 export type InsertCertificate = z.infer<typeof insertCertificateSchema>;
 export type Certificate = typeof certificates.$inferSelect;
 
-// Certificate Batches schema - مجموعات الشهادات (للإنشاء الجماعي)
-export const certificateBatches = pgTable("certificate_batches", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  userId: integer("user_id").references(() => users.id),
-  templateId: integer("template_id").notNull().references(() => templates.id),
-  status: text("status").default("pending").notNull(), // pending, processing, completed, failed
-  totalItems: integer("total_items").default(0).notNull(),
-  processedItems: integer("processed_items").default(0).notNull(),
-  sourceType: text("source_type").default("excel").notNull(), // excel, csv, manual
-  sourceData: text("source_data"), // Path to source file
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  completedAt: timestamp("completed_at"),
+export type InsertSeo = z.infer<typeof insertSeoSchema>;
+export type Seo = typeof seo.$inferSelect;
+
+export const insertFontSchema = createInsertSchema(fonts).pick({
+  name: true,
+  nameAr: true,
+  family: true,
+  category: true,
+  url: true,
+  displayOrder: true,
+  active: true
 });
 
-export const insertCertificateBatchSchema = createInsertSchema(certificateBatches).pick({
-  title: true,
-  userId: true,
-  templateId: true,
-  status: true,
-  totalItems: true,
-  sourceType: true,
-  sourceData: true,
-});
-
-export type InsertCertificateBatch = z.infer<typeof insertCertificateBatchSchema>;
-export type CertificateBatch = typeof certificateBatches.$inferSelect;
-
-// Certificate Batch Items schema - عناصر مجموعات الشهادات
-export const certificateBatchItems = pgTable("certificate_batch_items", {
-  id: serial("id").primaryKey(),
-  batchId: integer("batch_id").notNull().references(() => certificateBatches.id, { onDelete: "cascade" }),
-  certificateId: integer("certificate_id").references(() => certificates.id),
-  status: text("status").default("pending").notNull(), // pending, processing, completed, failed
-  formData: json("form_data").notNull(),
-  errorMessage: text("error_message"),
-  rowNumber: integer("row_number"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  processedAt: timestamp("processed_at"),
-});
-
-export const insertCertificateBatchItemSchema = createInsertSchema(certificateBatchItems).pick({
-  batchId: true,
-  certificateId: true,
-  status: true,
-  formData: true,
-  errorMessage: true,
-  rowNumber: true,
-});
-
-export type InsertCertificateBatchItem = z.infer<typeof insertCertificateBatchItemSchema>;
-export type CertificateBatchItem = typeof certificateBatchItems.$inferSelect;
-
-// Settings schema - إعدادات النظام
-export const settings = pgTable("settings", {
-  id: serial("id").primaryKey(),
-  key: text("key").notNull(),
-  value: json("value").notNull(),
-  category: text("category").default("general").notNull(),
-  description: text("description"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  updatedBy: integer("updated_by").references(() => users.id),
-}, (table) => {
-  return {
-    categoryKeyIdx: uniqueIndex("category_key_idx").on(table.category, table.key),
-  };
-});
+export type InsertFont = z.infer<typeof insertFontSchema>;
+export type Font = typeof fonts.$inferSelect;
 
 export const insertSettingSchema = createInsertSchema(settings).pick({
   key: true,
   value: true,
   category: true,
-  description: true,
-  updatedBy: true,
+  description: true
 });
 
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type Setting = typeof settings.$inferSelect;
 
-// تعريف العلاقات بعد تعريف جميع الجداول
-// Define relations after all tables are defined
-
-// Auth Settings schema - إعدادات المصادقة
-export const authSettings = pgTable("auth_settings", {
-  id: serial("id").primaryKey(),
-  provider: text("provider").notNull(), // google, facebook, twitter, linkedin, etc.
-  clientId: text("client_id"),
-  clientSecret: text("client_secret"),
-  redirectUri: text("redirect_uri"),
-  enabled: boolean("enabled").default(false).notNull(),
-  settings: json("settings").default({}),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  updatedBy: integer("updated_by").references(() => users.id),
-});
-
-// SEO schema - إعدادات تحسين محركات البحث
-export const seo = pgTable("seo", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description"),
-  keywords: json("keywords").default([]).$type<string[]>(),
-  ogImage: text("og_image"), // صورة Open Graph للمشاركات
-  entityType: text("entity_type").notNull(), // "global", "category", "template"
-  entityId: integer("entity_id"), // معرف الكيان المرتبط (إذا كان النوع غير global)
-  canonicalUrl: text("canonical_url"),
-  structuredData: json("structured_data").default({}), // بيانات JSON-LD منظمة
-  noIndex: boolean("no_index").default(false).notNull(), // عدم فهرسة المحتوى
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  updatedBy: integer("updated_by").references(() => users.id),
-}, (table) => {
-  return {
-    entityTypeIdIdx: uniqueIndex("entity_type_id_idx").on(table.entityType, table.entityId),
-  };
-});
-
-export const insertAuthSettingSchema = createInsertSchema(authSettings).pick({
-  provider: true,
-  clientId: true,
-  clientSecret: true,
-  redirectUri: true,
-  enabled: true,
-  settings: true,
-  updatedBy: true,
-});
-
-export type InsertAuthSetting = z.infer<typeof insertAuthSettingSchema>;
-export type AuthSetting = typeof authSettings.$inferSelect;
-
-export const insertSeoSchema = createInsertSchema(seo, {
-  title: (schema) => schema.min(1, "العنوان مطلوب"),
-  entityType: (schema) => schema.refine(val => ["global", "category", "template"].includes(val), {
-    message: "نوع الكيان يجب أن يكون global أو category أو template"
-  }),
-}).pick({
-  title: true,
-  description: true,
-  keywords: true,
-  ogImage: true,
-  entityType: true,
-  entityId: true,
-  canonicalUrl: true,
-  structuredData: true,
-  noIndex: true,
-  updatedBy: true,
-});
-
-export type InsertSeo = z.infer<typeof insertSeoSchema>;
-export type Seo = typeof seo.$inferSelect;
-
-export const usersRelations = relations(users, ({ many }) => ({
-  cards: many(cards),
-  certificates: many(certificates),
-}));
-
-export const categoriesRelations = relations(categories, ({ many }) => ({
-  templates: many(templates),
-}));
-
-// جدول مشاهدات الشهادات
-export const certificateViews = pgTable("certificate_views", {
-  id: serial("id").primaryKey(),
-  certificateId: integer("certificateId").notNull().references(() => certificates.id, { onDelete: "cascade" }),
-  ip: text("ip"),
-  userAgent: text("userAgent"),
-  viewedAt: timestamp("viewedAt").notNull().defaultNow(),
-});
-
-// جدول مشاركات الشهادات
-export const certificateShares = pgTable("certificate_shares", {
-  id: serial("id").primaryKey(),
-  certificateId: integer("certificateId").notNull().references(() => certificates.id, { onDelete: "cascade" }),
-  platform: text("platform"),
-  ip: text("ip"),
-  sharedAt: timestamp("sharedAt").notNull().defaultNow(),
-});
-
-// جدول تسجيل أخطاء النظام
-export const errorLogs = pgTable("error_logs", {
-  id: serial("id").primaryKey(),
-  errorType: text("error_type").notNull(), // client, server, database, etc.
-  errorMessage: text("error_message").notNull(),
-  errorStack: text("error_stack"),
-  componentStack: text("component_stack"), // React component stack
-  url: text("url"), // URL that caused the error
-  userAgent: text("user_agent"),
-  userId: integer("user_id").references(() => users.id),
-  ip: text("ip"),
-  timestamp: timestamp("timestamp").notNull().defaultNow(),
-  additionalData: json("additional_data").default({}),
-  status: text("status").default("new").notNull(), // new, reviewed, fixed, ignored
-  fixed: boolean("fixed").default(false).notNull(),
-  fixedAt: timestamp("fixed_at"),
-  fixedBy: integer("fixed_by").references(() => users.id),
-});
-
-export const templatesRelations = relations(templates, ({ one, many }) => ({
-  category: one(categories, { fields: [templates.categoryId], references: [categories.id] }),
-  cards: many(cards),
-  templateFields: many(templateFields),
-  certificates: many(certificates),
-}));
-
-export const templateFieldsRelations = relations(templateFields, ({ one }) => ({
-  template: one(templates, { fields: [templateFields.templateId], references: [templates.id] }),
-}));
-
-export const cardsRelations = relations(cards, ({ one }) => ({
-  template: one(templates, { fields: [cards.templateId], references: [templates.id] }),
-  user: one(users, { fields: [cards.userId], references: [users.id] }),
-  category: one(categories, { fields: [cards.categoryId], references: [categories.id] }),
-}));
-
-export const certificatesRelations = relations(certificates, ({ one, many }) => ({
-  template: one(templates, { fields: [certificates.templateId], references: [templates.id] }),
-  user: one(users, { fields: [certificates.userId], references: [users.id] }),
-  batchItems: many(certificateBatchItems),
-  views: many(certificateViews),
-  shares: many(certificateShares),
-}));
-
-export const certificateBatchesRelations = relations(certificateBatches, ({ one, many }) => ({
-  user: one(users, { fields: [certificateBatches.userId], references: [users.id] }),
-  template: one(templates, { fields: [certificateBatches.templateId], references: [templates.id] }),
-  items: many(certificateBatchItems),
-}));
-
-export const certificateBatchItemsRelations = relations(certificateBatchItems, ({ one }) => ({
-  batch: one(certificateBatches, { fields: [certificateBatchItems.batchId], references: [certificateBatches.id] }),
-  certificate: one(certificates, { fields: [certificateBatchItems.certificateId], references: [certificates.id] }),
-}));
-
-// أنشاء جدول طبقات العناصر - Layers
-export const layers = pgTable("layers", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  nameAr: text("name_ar"),
-  templateId: integer("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
-  type: text("type").notNull().default("field"), // field, logo, image, signature, stamp
-  fieldName: text("field_name"), // اسم الحقل المرتبط (إذا كان النوع field)
-  imageUrl: text("image_url"), // مسار الصورة (للأنواع الأخرى)
-  zIndex: integer("z_index").default(0).notNull(), // ترتيب الطبقة (الأعلى = الأعلى)
-  position: json("position").default({}), // x, y, width, height (كنسبة مئوية)
-  isDefault: boolean("is_default").default(false).notNull(), // هل هو طبقة افتراضية
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-export const insertLayerSchema = createInsertSchema(layers).pick({
+export const insertCertificateBatchSchema = createInsertSchema(certificateBatches).pick({
+  userId: true,
   name: true,
-  nameAr: true,
   templateId: true,
-  type: true,
-  fieldName: true,
-  imageUrl: true,
-  zIndex: true,
-  position: true,
-  isDefault: true,
+  status: true,
+  totalItems: true,
+  processedItems: true,
+  errorItems: true,
+  data: true
 });
 
-export type InsertLayer = z.infer<typeof insertLayerSchema>;
-export type Layer = typeof layers.$inferSelect;
+export type InsertCertificateBatch = z.infer<typeof insertCertificateBatchSchema>;
+export type CertificateBatch = typeof certificateBatches.$inferSelect;
 
-// شعارات المستخدم - User Logos
-export const userLogos = pgTable("user_logos", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  imageUrl: text("image_url").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  isActive: boolean("is_active").default(true).notNull(),
-});
-
-export const insertUserLogoSchema = createInsertSchema(userLogos).pick({
-  userId: true,
-  name: true,
-  imageUrl: true,
-  isActive: true,
-});
-
-export type InsertUserLogo = z.infer<typeof insertUserLogoSchema>;
-export type UserLogo = typeof userLogos.$inferSelect;
-
-// توقيعات المستخدم - User Signatures
-export const userSignatures = pgTable("user_signatures", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  imageUrl: text("image_url").notNull(),
-  type: text("type").default("signature").notNull(), // signature, stamp
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  isActive: boolean("is_active").default(true).notNull(),
-});
-
-export const insertUserSignatureSchema = createInsertSchema(userSignatures).pick({
-  userId: true,
-  name: true,
-  imageUrl: true,
-  type: true,
-  isActive: true,
-});
-
-export type InsertUserSignature = z.infer<typeof insertUserSignatureSchema>;
-export type UserSignature = typeof userSignatures.$inferSelect;
-
-// Schema لإدخال سجلات الأخطاء
-export const insertErrorLogSchema = createInsertSchema(errorLogs).pick({
-  errorType: true,
+export const insertCertificateBatchItemSchema = createInsertSchema(certificateBatchItems).pick({
+  batchId: true,
+  rowNumber: true,
+  certificateId: true,
+  recipientName: true,
+  recipientEmail: true,
+  status: true,
   errorMessage: true,
-  errorStack: true,
-  componentStack: true,
-  url: true,
-  userAgent: true,
-  userId: true,
-  ip: true,
-  additionalData: true,
-  status: true
+  data: true
 });
 
-export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
-export type ErrorLog = typeof errorLogs.$inferSelect;
+export type InsertCertificateBatchItem = z.infer<typeof insertCertificateBatchItemSchema>;
+export type CertificateBatchItem = typeof certificateBatchItems.$inferSelect;
 
-// شعارات القوالب - Template Logos
-export const templateLogos = pgTable("template_logos", {
-  id: serial("id").primaryKey(),
-  templateId: integer("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  imageUrl: text("image_url").notNull(),
-  position: json("position").default({}), // x, y, width, height (كنسبة مئوية)
-  zIndex: integer("z_index").default(10).notNull(), // ترتيب الطبقة (الأعلى = الأعلى)
-  isRequired: boolean("is_required").default(false).notNull(), // هل هو إلزامي في القالب
-  displayOrder: integer("display_order").default(0).notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-export const insertTemplateLogoSchema = createInsertSchema(templateLogos).pick({
-  templateId: true,
-  name: true,
-  imageUrl: true,
-  position: true,
-  zIndex: true,
-  isRequired: true,
-  displayOrder: true,
-});
-
-export type InsertTemplateLogo = z.infer<typeof insertTemplateLogoSchema>;
-export type TemplateLogo = typeof templateLogos.$inferSelect;
-
-// العلاقات للجداول الجديدة
+// Define relationships
 export const layersRelations = relations(layers, ({ one }) => ({
   template: one(templates, { fields: [layers.templateId], references: [templates.id] }),
 }));
 
-// العلاقات لجدول SEO
-export const seoRelations = relations(seo, ({ one }) => ({
-  user: one(users, { fields: [seo.updatedBy], references: [users.id] }),
+export const templateFieldsRelations = relations(templateFields, ({ one }) => ({
+  template: one(templates, { fields: [templateFields.templateId], references: [templates.id] }),
 }));
 
 export const userLogosRelations = relations(userLogos, ({ one }) => ({
@@ -617,18 +454,100 @@ export const templateLogosRelations = relations(templateLogos, ({ one }) => ({
   template: one(templates, { fields: [templateLogos.templateId], references: [templates.id] }),
 }));
 
-// تحديث العلاقات للمستخدمين والقوالب
-export const usersRelationsExtended = relations(users, ({ many }) => ({
+export const cardsRelations = relations(cards, ({ one }) => ({
+  user: one(users, { fields: [cards.userId], references: [users.id] }),
+  template: one(templates, { fields: [cards.templateId], references: [templates.id] }),
+}));
+
+export const certificatesRelations = relations(certificates, ({ one }) => ({
+  user: one(users, { fields: [certificates.userId], references: [users.id] }),
+  template: one(templates, { fields: [certificates.templateId], references: [templates.id] }),
+}));
+
+export const seoRelations = relations(seo, ({ one }) => ({
+  user: one(users, { fields: [seo.updatedBy], references: [users.id] }),
+}));
+
+export const templatesRelations = relations(templates, ({ one, many }) => ({
+  category: one(categories, { fields: [templates.categoryId], references: [categories.id] }),
+  layers: many(layers),
+  fields: many(templateFields),
+  logos: many(templateLogos),
+  cards: many(cards),
+  certificates: many(certificates),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
   logos: many(userLogos),
   signatures: many(userSignatures),
   cards: many(cards),
   certificates: many(certificates),
 }));
 
-export const templatesRelationsExtended = relations(templates, ({ many }) => ({
-  layers: many(layers),
-  logos: many(templateLogos),
-  cards: many(cards),
-  templateFields: many(templateFields),
-  certificates: many(certificates),
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  templates: many(templates),
+}));
+
+export const certificateBatchesRelations = relations(certificateBatches, ({ one, many }) => ({
+  user: one(users, { fields: [certificateBatches.userId], references: [users.id] }),
+  template: one(templates, { fields: [certificateBatches.templateId], references: [templates.id] }),
+  items: many(certificateBatchItems),
+}));
+
+export const certificateBatchItemsRelations = relations(certificateBatchItems, ({ one }) => ({
+  batch: one(certificateBatches, { fields: [certificateBatchItems.batchId], references: [certificateBatches.id] }),
+  certificate: one(certificates, { fields: [certificateBatchItems.certificateId], references: [certificates.id] }),
+}));
+
+export const fontsRelations = relations(fonts, ({}) => ({}));
+
+// Auth Settings schema
+export const authSettings = pgTable("auth_settings", {
+  id: serial("id").primaryKey(),
+  provider: text("provider").notNull().unique(),
+  clientId: text("client_id"),
+  clientSecret: text("client_secret"),
+  redirectUri: text("redirect_uri"),
+  enabled: boolean("enabled").default(false).notNull(),
+  settings: json("settings").default({}),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedBy: integer("updated_by").references(() => users.id),
+});
+
+export const authSettingsRelations = relations(authSettings, ({ one }) => ({
+  updatedByUser: one(users, { fields: [authSettings.updatedBy], references: [users.id] }),
+}));
+
+// جدول الجلسات لإدارة جلسات المستخدمين
+export const sessions = pgTable("session", {
+  sid: text("sid").notNull().primaryKey(),
+  sess: json("sess").notNull(),
+  expire: timestamp("expire").notNull(),
+});
+
+// Certificate Views schema
+export const certificateViews = pgTable("certificate_views", {
+  id: serial("id").primaryKey(),
+  certificateId: integer("certificate_id").notNull().references(() => certificates.id),
+  ip: text("ip"),
+  userAgent: text("user_agent"),
+  viewedAt: timestamp("viewed_at").notNull().defaultNow(),
+});
+
+export const certificateViewsRelations = relations(certificateViews, ({ one }) => ({
+  certificate: one(certificates, { fields: [certificateViews.certificateId], references: [certificates.id] }),
+}));
+
+// Certificate Shares schema
+export const certificateShares = pgTable("certificate_shares", {
+  id: serial("id").primaryKey(),
+  certificateId: integer("certificate_id").notNull().references(() => certificates.id),
+  platform: text("platform"),
+  ip: text("ip"),
+  sharedAt: timestamp("shared_at").notNull().defaultNow(),
+});
+
+export const certificateSharesRelations = relations(certificateShares, ({ one }) => ({
+  certificate: one(certificates, { fields: [certificateShares.certificateId], references: [certificates.id] }),
 }));
