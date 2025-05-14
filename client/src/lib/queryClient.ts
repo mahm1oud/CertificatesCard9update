@@ -214,30 +214,20 @@ export const getQueryFn: <T>(options?: {
     }
   };
 
-// عميل الاستعلام الموحد
+// عميل الاستعلام الموحد لـ TanStack Query v5
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: (failureCount, error) => {
-        // استراتيجية إعادة المحاولة أكثر ذكاءً: فقط للأخطاء المؤقتة المحتملة
-        const isNetworkError = error instanceof Error && 
-          (error.message.includes('network') || 
-           error.message.includes('connection') ||
-           error.message.includes('timeout'));
-           
-        const isServerError = error instanceof Error && 
-          error.message.startsWith('5'); // أخطاء 5xx
-          
-        // فقط إعادة المحاولة للأخطاء المؤقتة ولمرتين كحد أقصى
-        return (isNetworkError || isServerError) && failureCount < 2;
-      },
+      refetchInterval: 0, // منع إعادة التحميل الدوري
+      refetchOnWindowFocus: false, // منع إعادة التحميل عند التركيز على النافذة
+      refetchOnMount: false, // منع إعادة التحميل عند تركيب المكون  
+      refetchOnReconnect: false, // منع إعادة التحميل عند إعادة الاتصال
+      staleTime: Infinity, // منع اعتبار البيانات قديمة
+      retry: false, // تعطيل إعادة المحاولة
     },
     mutations: {
-      retry: false,
+      retry: false, // تعطيل إعادة المحاولة للتعديلات
     },
   },
 });
